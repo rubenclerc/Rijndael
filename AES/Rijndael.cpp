@@ -122,13 +122,64 @@ void Rijndael::mixColumns() {
 /// </summary>
 void Rijndael::addRoundKey() {
 
-    // Récupère la clé du round
-    unsigned char key = this->roundKey.at(this->round);
+}
 
-    for (int row = 0; row < 4; row++) {
-        for (int col = 0; col < 4; col++) {
-            this->state[row][col] ^= key;
+// Key schedule
+
+/// <summary>
+/// Créé les 10 rounds key
+/// </summary>
+void Rijndael::expandKey() {
+
+    // Initialisation
+    unsigned char currentKey[4][4], previousKey[4][4], tmp;
+    int row, col;
+
+    // Remplissage de la clé précédente
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            previousKey[i][j] = this->key[i][j];
         }
+    }
+
+    // 1 boucle = 1 round key créée
+    for (int i = 1; i < 11; i++) {
+
+        // Colonne 1
+
+        // Remplissage de la première colonne
+        for (int line = 0; line < 4; line++) {
+            currentKey[line][0] = previousKey[line][3];
+        }
+
+        // Rot word
+        tmp = currentKey[0][0];
+        currentKey[0][0] = currentKey[1][0];
+        currentKey[1][0] = currentKey[2][0];
+        currentKey[2][0] = currentKey[3][0];
+        currentKey[3][0] = tmp;
+
+        // SubBytes
+        for (int j = 0; j < 4; j++) {
+            col = currentKey[i][0] & 0x0f;
+            row = (currentKey[i][0] >> 4) & 0xff;
+            currentKey[i][j] = this->sBox[row][col];
+        }
+
+        // Xor avec la première colonne de la previous key et le Rcon
+        for (int line = 0; line < 4; line++) {
+            currentKey[line][0] = previousKey[line][0] ^ currentKey[line][0] ^ this->rCon[line][i-1];
+        }
+
+        // Colonnes 2, 3 & 4
+        for (int column = 1; column < 4; column++) {
+            for (int line = 0; line < 4; line++) {
+                currentKey[line][column] = previousKey[line][column] ^ currentKey[line][column - 1];
+            }
+        }
+
+        // Ajout de la round key à la liste de rounds keys
+        this->roundKey.push_back(currentKey);
     }
 
 }
