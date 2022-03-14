@@ -1,2 +1,2 @@
 # Rijndael
-Rijndael C++ class
+Rijndael C++ class for 128bits keys
