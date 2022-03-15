@@ -6,7 +6,7 @@
 
 // Constructeur
 
-/// Constructeur: initialise les paramËtres de base
+/// Constructeur: initialise les param√®tres de base
 /// \param message
 /// \param key
 Rijndael::Rijndael() {}
@@ -19,8 +19,8 @@ string Rijndael::getMessage() {
 
 // Chiffrement
 
-/// Chiffre le message ‡ travers les 10 rounds de Rijndael
-/// \return message chiffrÈ
+/// Chiffre le message √† travers les 10 rounds de Rijndael
+/// \return message chiffr√©
 string Rijndael::encrypt(string message) {
 
     this->message = message;
@@ -59,7 +59,7 @@ void Rijndael::subBytes() {
 }
 
 /// <summary>
-/// Remplace les dernier n derniers bytes de chaque ligne par les n premiers bytes de cette ligne (n = numÈro de ligne)
+/// Remplace les dernier n derniers bytes de chaque ligne par les n premiers bytes de cette ligne (n = num√©ro de ligne)
 /// </summary>
 void Rijndael::shiftRows() {
 
@@ -88,7 +88,7 @@ void Rijndael::shiftRows() {
 }
 
 /// <summary>
-/// Chaque colonne est multipliÈe dans le groupe de Galois par une matrice donnÈe
+/// Chaque colonne est multipli√©e dans le groupe de Galois par une matrice donn√©e
 /// </summary>
 void Rijndael::mixColumns() {
 
@@ -127,7 +127,7 @@ void Rijndael::addRoundKey() {
 // Key schedule
 
 /// <summary>
-/// CrÈÈ les 10 rounds key
+/// Cr√©√© les 10 rounds key
 /// </summary>
 void Rijndael::expandKey() {
 
@@ -135,19 +135,19 @@ void Rijndael::expandKey() {
     unsigned char currentKey[4][4], previousKey[4][4], tmp;
     int row, col;
 
-    // Remplissage de la clÈ prÈcÈdente
+    // Remplissage de la cl√© pr√©c√©dente
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             previousKey[i][j] = this->key[i][j];
         }
     }
 
-    // 1 boucle = 1 round key crÈÈe
+    // 1 boucle = 1 round key cr√©√©e
     for (int i = 1; i < 11; i++) {
 
         // Colonne 1
 
-        // Remplissage de la premiËre colonne
+        // Remplissage de la premi√®re colonne
         for (int line = 0; line < 4; line++) {
             currentKey[line][0] = previousKey[line][3];
         }
@@ -166,7 +166,7 @@ void Rijndael::expandKey() {
             currentKey[i][j] = this->sBox[row][col];
         }
 
-        // Xor avec la premiËre colonne de la previous key et le Rcon
+        // Xor avec la premi√®re colonne de la previous key et le Rcon
         for (int line = 0; line < 4; line++) {
             currentKey[line][0] = previousKey[line][0] ^ currentKey[line][0] ^ this->rCon[line][i-1];
         }
@@ -178,8 +178,11 @@ void Rijndael::expandKey() {
             }
         }
 
-        // Ajout de la round key ‡ la liste de rounds keys
+        // Ajout de la round key √† la liste de rounds keys
         this->roundKey.push_back(currentKey);
+        
+        // Passe √† la prochaine cl√©
+        previousKey = currentKey;
     }
 
 }
