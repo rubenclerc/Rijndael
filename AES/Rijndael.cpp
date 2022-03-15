@@ -26,7 +26,7 @@ string Rijndael::encrypt(string message) {
     this->message = message;
 
     // Premier round
-    this->addRoundKey();
+    this->addRoundKey(this->round);
     this->round++;
 
     // Rounds principaux
@@ -34,13 +34,13 @@ string Rijndael::encrypt(string message) {
         this->subBytes();
         this->shiftRows();
         this->mixColumns();
-        this->addRoundKey();
+        this->addRoundKey(this->round);
     }
 
     // Round final
     this->subBytes();
     this->shiftRows();
-    this->addRoundKey();
+    this->addRoundKey(this->round);
 
     return this->getMessage();
 }
@@ -120,8 +120,13 @@ void Rijndael::mixColumns() {
 /// <summary>
 /// XOR chaque colonne avec la round key correspondante
 /// </summary>
-void Rijndael::addRoundKey() {
+void Rijndael::addRoundKey(int round) {
 
+    for (int col = 0; col < 4; col++) {
+        for (int row = 0; row < 4; row++) {
+            this->state[row][col] = this->roundKey.at(round)[row][col];
+        }
+    }
 }
 
 // Key schedule
@@ -182,7 +187,11 @@ void Rijndael::expandKey() {
         this->roundKey.push_back(currentKey);
         
         // Passe à la prochaine clé
-        previousKey = currentKey;
+        for (int r = 0; r < 4; r++) {
+            for (int c = 0; c < 4; c++) {
+                previousKey[r][c] = currentKey[r][c];
+            }
+        }
     }
 
 }

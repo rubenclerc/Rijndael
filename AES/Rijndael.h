@@ -30,7 +30,7 @@ public:
     void subBytes();
     void shiftRows();
     void mixColumns();
-    void addRoundKey();
+    void addRoundKey(int round);
 
     // Déchiffrement
 
