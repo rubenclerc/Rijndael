@@ -21,6 +21,13 @@ const unsigned int sBox[16][16] = {
     0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
 };
 
+const unsigned int rCon[4][10] = {
+    0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
 void testSubBytes() {
 
     // Initialisation
@@ -252,6 +259,189 @@ void testAddRoundKey() {
 
 void testExpandKey() {
 
+
+    // Initialisation
+    int count = 0;
+    int countCle = 0;
+
+    unsigned char key[4][4] = {
+        0x2b, 0x28, 0xab, 0x09,
+        0x7e, 0xae, 0xf7, 0xcf,
+        0x15, 0xd2, 0x15, 0x4f,
+        0x16, 0xa6, 0x88, 0x3c
+    };
+
+    unsigned char expectedRoundKeys[10][4][4] = {
+        {
+        0xa0, 0x88, 0x23, 0x2a,
+        0xfa, 0x54, 0xa3, 0x6c,
+        0xfe, 0x2c, 0x39, 0x76,
+        0x17, 0xb1, 0x39, 0x05
+        },
+
+        {
+        0xf2, 0x7a, 0x59, 0x73,
+        0xc2, 0x96, 0x35, 0x59,
+        0x95, 0xb9, 0x80, 0xf6,
+        0xf2, 0x43, 0x7a, 0x7f
+        },
+
+        {
+        0x3d, 0x47, 0x1e, 0x6d,
+        0x80, 0x16, 0x23, 0x7a,
+        0x47, 0xfe, 0x7e, 0x88,
+        0x7d, 0x3e, 0x44, 0x3b
+        },
+
+        {
+        0xef, 0xa8, 0xb6, 0xdb,
+        0x44, 0x52, 0x71, 0x0b,
+        0xa5, 0x5b, 0x25, 0xad,
+        0x41, 0x7f, 0x2b, 0x00
+        },
+
+        {
+        0xd4, 0x7c, 0xca, 0x11,
+        0xd1, 0x83, 0xf2, 0xf9,
+        0xc6, 0x9d, 0xb8, 0x15,
+        0xf8, 0x87, 0xbc, 0xbc
+        },
+
+        {
+        0x6d, 0x11, 0xdb, 0xca,
+        0x88, 0x0b, 0xf9, 0x00,
+        0xa3, 0x3e, 0x86, 0x93,
+        0x7a, 0xfd, 0x41, 0xfd
+        },
+
+        {
+        0x4e, 0x5f, 0x84, 0x4a,
+        0x54, 0x5f, 0xa6, 0xa6,
+        0xf7, 0xc9, 0x4f, 0xcd,
+        0x0e, 0xf3, 0xb2, 0x4f
+        },
+
+        {
+        0xea, 0xb5, 0x31, 0x7f,
+        0xd2, 0x8d, 0x2b, 0x8d,
+        0x73, 0xba, 0xf5, 0x29,
+        0x21, 0xd2, 0x60, 0x2f
+        },
+
+        {
+        0xac, 0x19, 0x28, 0x57,
+        0x77, 0xfa, 0xd1, 0x5c,
+        0x66, 0xdc, 0x29, 0x00,
+        0xf3, 0x21, 0x41, 0x6e
+        },
+
+        {
+        0xd0, 0xc9, 0xe1, 0xb6,
+        0x14, 0xee, 0x3f, 0x63,
+        0xf9, 0x25, 0x0c, 0x0c,
+        0xa8, 0x89, 0xc8, 0xa6
+        }
+    };
+
+    unsigned char roundKeys[10][4][4];
+
+    // Transformation
+
+    // Initialisation
+    unsigned char currentKey[4][4], previousKey[4][4], tmp;
+    int row, col;
+
+    // Remplissage de la clé précédente
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            previousKey[i][j] = key[i][j];
+        }
+    }
+
+    // 1 boucle = 1 round key créée
+    for (int cle = 0; cle < 10;  cle++) {
+
+        // Colonne 1
+
+        // Remplissage de la première colonne
+        for (int line = 0; line < 4; line++) {
+            currentKey[line][0] = previousKey[line][3];
+        }
+
+        // Rot word
+        tmp = currentKey[0][0];
+        currentKey[0][0] = currentKey[1][0];
+        currentKey[1][0] = currentKey[2][0];
+        currentKey[2][0] = currentKey[3][0];
+        currentKey[3][0] = tmp;
+
+        // SubBytes
+        for (int j = 0; j < 4; j++) {
+            col = currentKey[0][0] & 0x0f;
+            row = (currentKey[0][0] >> 4) & 0xff;
+            currentKey[0][j] = sBox[row][col];
+        }
+
+        // Xor avec la première colonne de la previous key et le Rcon
+        for (int line = 0; line < 4; line++) {
+            currentKey[line][0] = previousKey[line][0] ^ currentKey[line][0] ^ rCon[line][cle];
+        }
+
+        for (int column = 1; column < 4; column++) {
+            for (int line = 0; line < 4; line++) {
+                currentKey[line][column] = previousKey[line][column] ^ currentKey[line][column - 1];
+            }
+        }
+
+        // Ajout de la round key à la liste de rounds keys
+        for (int r = 0; r < 4; r++) {
+            for (int c = 0; c < 4; c++) {
+                roundKeys[cle][r][c] = currentKey[r][c];
+            }
+        }
+
+        // Passe à la prochaine clé
+        for (int r = 0; r < 4; r++) {
+            for (int c = 0; c < 4; c++) {
+                previousKey[r][c] = currentKey[r][c];
+            }
+        }
+
+    }
+
+    // Test
+    cout << "Test expandKey" << endl;
+
+
+    // Chaque cle
+    for (int cle = 0; cle < 10; cle++) {
+        for (int ligne = 0; ligne < 4; ligne++) {
+            for (int colonne = 0; colonne < 4; colonne++) {
+                if (roundKeys[cle][ligne][colonne] == expectedRoundKeys[cle][ligne][colonne]) {
+                    cout << "cle " << cle << " presque ok" << endl;
+                    countCle++;
+                }
+                else {
+                    cout << "cle " << cle << " pas ok partiellement" << endl;
+                }
+            }
+        }
+
+        if (countCle == 16) {
+            cout << "cle " << cle << " ok totalement" << endl;
+            count++;
+        }
+        else {
+            cout << "cle " << cle << " pas ok totalement" << endl;
+        }
+
+        countCle = 0;
+    }
+
+    if (count == 10) {
+        cout << "ExpandKey ok!" << endl;
+    }
+    
 }
 
 int main() {
@@ -269,7 +459,7 @@ int main() {
     testAddRoundKey();
 
     // Test expand key
-
+    testExpandKey();
 
     return 0;
 }

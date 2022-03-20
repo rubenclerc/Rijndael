@@ -166,9 +166,9 @@ void Rijndael::expandKey() {
 
         // SubBytes
         for (int j = 0; j < 4; j++) {
-            col = currentKey[i][0] & 0x0f;
-            row = (currentKey[i][0] >> 4) & 0xff;
-            currentKey[i][j] = this->sBox[row][col];
+            col = currentKey[i-1][0] & 0x0f;
+            row = (currentKey[i-1][0] >> 4) & 0xff;
+            currentKey[i-1][j] = this->sBox[row][col];
         }
 
         // Xor avec la première colonne de la previous key et le Rcon
@@ -186,7 +186,7 @@ void Rijndael::expandKey() {
         // Ajout de la round key à la liste de rounds keys
         for (int r = 0; r < 4; r++) {
             for (int c = 0; c < 4; c++) {
-                this->roundKey[i][r][c] = currentKey[r][c];
+                this->roundKey[i-1][r][c] = currentKey[r][c];
             }
         }
 
