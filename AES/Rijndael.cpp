@@ -124,7 +124,7 @@ void Rijndael::addRoundKey(int round) {
 
     for (int col = 0; col < 4; col++) {
         for (int row = 0; row < 4; row++) {
-            this->state[row][col] ^= this->roundKey.at(round)[row][col];
+            this->state[row][col] ^= this->roundKey[round-1][row][col];
         }
     }
 }
@@ -184,8 +184,12 @@ void Rijndael::expandKey() {
         }
 
         // Ajout de la round key à la liste de rounds keys
-    //    this->roundKey.push_back(currentKey);
-        
+        for (int r = 0; r < 4; r++) {
+            for (int c = 0; c < 4; c++) {
+                this->roundKey[i][r][c] = currentKey[r][c];
+            }
+        }
+
         // Passe à la prochaine clé
         for (int r = 0; r < 4; r++) {
             for (int c = 0; c < 4; c++) {

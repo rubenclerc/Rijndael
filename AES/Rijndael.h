@@ -37,7 +37,7 @@ public:
 private:
     string message;
     unsigned char key[4][4], state[4][4];
-    vector<unsigned char[4][4]> roundKey;
+    unsigned char roundKey[10][4][4];
     int round = 0;
 
     const unsigned int sBox[16][16] = {
