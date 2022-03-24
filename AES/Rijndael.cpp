@@ -9,7 +9,17 @@
 /// Constructeur: initialise les paramètres de base
 /// \param message
 /// \param key
-Rijndael::Rijndael() {}
+Rijndael::Rijndael(unsigned char key[4][4]) {
+
+    // Remplissage de la clé
+    for (int row = 0; row < 4; row++) {
+        for (int col = 0; col < 4; col++) {
+            this->key[row][col] = key[row][col];
+        }
+    }
+
+    this->round = 0;
+}
 
 
 // Getters/Setters
@@ -19,18 +29,32 @@ string Rijndael::getMessage() {
 
 // Chiffrement
 
-/// Chiffre le message à travers les 10 rounds de Rijndael
-/// \return message chiffré
-string Rijndael::encrypt(string message) {
+/// <summary>
+/// Chiffrer un morceau du texte et le renvoie
+/// </summary>
+/// <param name="morceau">morceau à chiffrer</param>
+/// <returns>morceau chiffré</returns>
+void Rijndael::chiffrerMorceau(unsigned char morceau[4][4]) {
+    
+    // Génération des clés
+    this->expandKey();
 
-    this->message = message;
+    // Remplissage du state
+    for (int row = 0; row < 4; row++) {
+        for (int col = 0; col < 4; col++) {
+            this->state[row][col] = morceau[row][col];
+        }
+    }
 
     // Premier round
-    this->addRoundKey(this->round);
-    this->round++;
+    for (int col = 0; col < 4; col++) {
+        for (int row = 0; row < 4; row++) {
+            this->state[row][col] ^= this->key[row][col];
+        }
+    }
 
     // Rounds principaux
-    for (this->round; this->round < 10; this->round++) {
+    for (this->round; this->round < 9; this->round++) {
         this->subBytes();
         this->shiftRows();
         this->mixColumns();
@@ -41,6 +65,24 @@ string Rijndael::encrypt(string message) {
     this->subBytes();
     this->shiftRows();
     this->addRoundKey(this->round);
+
+    /*
+    // Affichage (pour les tests)
+    for (int row = 0; row < 4; row++) {
+        for (int col = 0; col < 4; col++) {
+            printf("%x", this->state[row][col]);
+        }
+        printf("%s", "\n");
+    }
+    */
+}
+
+/// Chiffre le message à travers les 10 rounds de Rijndael
+/// \return message chiffré
+string Rijndael::chiffrer(string message) {
+
+
+
 
     return this->getMessage();
 }
@@ -124,7 +166,7 @@ void Rijndael::addRoundKey(int round) {
 
     for (int col = 0; col < 4; col++) {
         for (int row = 0; row < 4; row++) {
-            this->state[row][col] ^= this->roundKey[round-1][row][col];
+            this->state[row][col] ^= this->roundKey[round][row][col];
         }
     }
 }
@@ -170,11 +212,11 @@ void Rijndael::expandKey() {
 
         // Xor avec la première colonne de la previous key et le Rcon
         for (int line = 0; line < 4; line++) {
-            currentKey[line][0] = previousKey[line][0] ^ currentKey[line][0] ^ rCon[line][cle];
+            currentKey[line][0] = previousKey[line][0] ^ currentKey[line][0] ^ this->rCon[line][cle];
         }
 
 
-        // Colonnes 2, 3 , 4
+        // Colonnes 2, 3 & 4
         for (int column = 1; column < 4; column++) {
             for (int line = 0; line < 4; line++) {
                 currentKey[line][column] = currentKey[line][column - 1] ^ previousKey[line][column];

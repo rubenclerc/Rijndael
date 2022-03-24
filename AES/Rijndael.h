@@ -13,7 +13,7 @@ using namespace  std;
 class Rijndael {
 public:
     // Constructeur
-    Rijndael();
+    Rijndael(unsigned char key[4][4]);
 
     // Getters/Setters
     string getMessage();
@@ -26,7 +26,8 @@ public:
     void expandKey();
 
     // Chiffrement
-    string encrypt(string message);
+    string chiffrer(string message);
+    void chiffrerMorceau(unsigned char morceau[4][4]);
     void subBytes();
     void shiftRows();
     void mixColumns();
