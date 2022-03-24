@@ -136,25 +136,22 @@ void Rijndael::addRoundKey(int round) {
 /// </summary>
 void Rijndael::expandKey() {
 
-    // Initialisation
-    unsigned char currentKey[4][4], previousKey[4][4], tmp;
-    int row, col;
+    // Transformation
+    unsigned char currentKey[4][4], tmp, previousKey[4][4];
+    int col, row;
 
-    // Remplissage de la clé précédente
+    // Remplissage clé précédente
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
-            previousKey[i][j] = this->key[i][j];
+            previousKey[i][j] = key[i][j];
         }
     }
 
-    // 1 boucle = 1 round key créée
-    for (int i = 1; i < 11; i++) {
+    for (int cle = 0; cle < 10; cle++) {
 
         // Colonne 1
-
-        // Remplissage de la première colonne
-        for (int line = 0; line < 4; line++) {
-            currentKey[line][0] = previousKey[line][3];
+        for (int i = 0; i < 4; i++) {
+            currentKey[i][0] = previousKey[i][3];
         }
 
         // Rot word
@@ -165,35 +162,36 @@ void Rijndael::expandKey() {
         currentKey[3][0] = tmp;
 
         // SubBytes
-        for (int j = 0; j < 4; j++) {
-            col = currentKey[i-1][0] & 0x0f;
-            row = (currentKey[i-1][0] >> 4) & 0xff;
-            currentKey[i-1][j] = this->sBox[row][col];
+        for (int i = 0; i < 4; i++) {
+            col = currentKey[i][0] & 0x0f;
+            row = (currentKey[i][0] >> 4) & 0x0f;
+            currentKey[i][0] = sBox[row][col];
         }
 
         // Xor avec la première colonne de la previous key et le Rcon
         for (int line = 0; line < 4; line++) {
-            currentKey[line][0] = previousKey[line][0] ^ currentKey[line][0] ^ this->rCon[line][i-1];
+            currentKey[line][0] = previousKey[line][0] ^ currentKey[line][0] ^ rCon[line][cle];
         }
 
-        // Colonnes 2, 3 & 4
+
+        // Colonnes 2, 3 , 4
         for (int column = 1; column < 4; column++) {
             for (int line = 0; line < 4; line++) {
-                currentKey[line][column] = previousKey[line][column] ^ currentKey[line][column - 1];
+                currentKey[line][column] = currentKey[line][column - 1] ^ previousKey[line][column];
+            }
+        }
+
+        // Passe a la prochaine clé
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                previousKey[i][j] = currentKey[i][j];
             }
         }
 
         // Ajout de la round key à la liste de rounds keys
         for (int r = 0; r < 4; r++) {
             for (int c = 0; c < 4; c++) {
-                this->roundKey[i-1][r][c] = currentKey[r][c];
-            }
-        }
-
-        // Passe à la prochaine clé
-        for (int r = 0; r < 4; r++) {
-            for (int c = 0; c < 4; c++) {
-                previousKey[r][c] = currentKey[r][c];
+                this->roundKey[cle][r][c] = currentKey[r][c];
             }
         }
     }

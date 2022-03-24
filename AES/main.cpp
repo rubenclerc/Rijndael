@@ -297,7 +297,7 @@ void testExpandKey() {
         0xef, 0xa8, 0xb6, 0xdb,
         0x44, 0x52, 0x71, 0x0b,
         0xa5, 0x5b, 0x25, 0xad,
-        0x41, 0x7f, 0x2b, 0x00
+        0x41, 0x7f, 0x3b, 0x00
         },
 
         {
@@ -315,9 +315,9 @@ void testExpandKey() {
         },
 
         {
-        0x4e, 0x5f, 0x84, 0x4a,
+        0x4e, 0x5f, 0x84, 0x4e,
         0x54, 0x5f, 0xa6, 0xa6,
-        0xf7, 0xc9, 0x4f, 0xcd,
+        0xf7, 0xc9, 0x4f, 0xdc,
         0x0e, 0xf3, 0xb2, 0x4f
         },
 
@@ -346,26 +346,22 @@ void testExpandKey() {
     unsigned char roundKeys[10][4][4];
 
     // Transformation
+    unsigned char currentKey[4][4], tmp;
+    unsigned char previousKey[4][4];
+    int col, row;
 
-    // Initialisation
-    unsigned char currentKey[4][4], previousKey[4][4], tmp;
-    int row, col;
-
-    // Remplissage de la clé précédente
+    // Remplissage clé précédente
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             previousKey[i][j] = key[i][j];
         }
     }
 
-    // 1 boucle = 1 round key créée
-    for (int cle = 0; cle < 10;  cle++) {
+    for (int cle = 0; cle < 10; cle++) {
 
         // Colonne 1
-
-        // Remplissage de la première colonne
-        for (int line = 0; line < 4; line++) {
-            currentKey[line][0] = previousKey[line][3];
+        for (int i = 0; i < 4; i++) {
+            currentKey[i][0] = previousKey[i][3];
         }
 
         // Rot word
@@ -376,10 +372,10 @@ void testExpandKey() {
         currentKey[3][0] = tmp;
 
         // SubBytes
-        for (int j = 0; j < 4; j++) {
-            col = currentKey[0][0] & 0x0f;
-            row = (currentKey[0][0] >> 4) & 0xff;
-            currentKey[0][j] = sBox[row][col];
+        for (int i = 0; i < 4; i++) {
+            col = currentKey[i][0] & 0x0f;
+            row = (currentKey[i][0] >> 4) & 0x0f;
+            currentKey[i][0] = sBox[row][col];
         }
 
         // Xor avec la première colonne de la previous key et le Rcon
@@ -387,9 +383,18 @@ void testExpandKey() {
             currentKey[line][0] = previousKey[line][0] ^ currentKey[line][0] ^ rCon[line][cle];
         }
 
+
+        // Colonnes 2, 3 , 4
         for (int column = 1; column < 4; column++) {
             for (int line = 0; line < 4; line++) {
-                currentKey[line][column] = previousKey[line][column] ^ currentKey[line][column - 1];
+                currentKey[line][column] = currentKey[line][column - 1] ^ previousKey[line][column];
+            }
+        }
+
+        // Passe a la prochaine clé
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                previousKey[i][j] = currentKey[i][j];
             }
         }
 
@@ -399,40 +404,28 @@ void testExpandKey() {
                 roundKeys[cle][r][c] = currentKey[r][c];
             }
         }
-
-        // Passe à la prochaine clé
-        for (int r = 0; r < 4; r++) {
-            for (int c = 0; c < 4; c++) {
-                previousKey[r][c] = currentKey[r][c];
-            }
-        }
-
     }
-
+    
     // Test
-    cout << "Test expandKey" << endl;
-
+    cout << "Test expandKey..." << endl;
+    
 
     // Chaque cle
     for (int cle = 0; cle < 10; cle++) {
         for (int ligne = 0; ligne < 4; ligne++) {
             for (int colonne = 0; colonne < 4; colonne++) {
                 if (roundKeys[cle][ligne][colonne] == expectedRoundKeys[cle][ligne][colonne]) {
-                    cout << "cle " << cle << " presque ok" << endl;
                     countCle++;
-                }
-                else {
-                    cout << "cle " << cle << " pas ok partiellement" << endl;
                 }
             }
         }
 
         if (countCle == 16) {
-            cout << "cle " << cle << " ok totalement" << endl;
+            cout << "cle " << cle+1<< " ok" << endl;
             count++;
         }
         else {
-            cout << "cle " << cle << " pas ok totalement" << endl;
+            cout << "cle " << cle+1 << " pas ok" << endl;
         }
 
         countCle = 0;
